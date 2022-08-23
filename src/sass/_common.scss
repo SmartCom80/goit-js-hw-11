@@ -1,1 +1,13 @@
 @import '~node_modules/modern-normalize/modern-normalize.css';
+* {
+  box-sizing: border-box;
+}
+
+p {
+  margin: 0;
+}
+
+body {
+  margin: 0;
+  padding: 100px 0 20px;
+}
