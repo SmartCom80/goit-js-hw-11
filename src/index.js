@@ -3,18 +3,16 @@ import { imageSearchApi } from '../src/search-api.js';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 // import SimpleLightbox from 'simplelightbox';
 // import 'simplelightbox/dist/simple-lightbox.min.css';
-
+import getRefs from '../src/get-refs.js';
 import imageCardTpl from '../src/templates/photo-cards.hbs';
-// document.body.innerHTML = templateFunction();
+import { onClearStorage } from '../src/search-api.js';
 
-const refs = {
-  form: document.querySelector('.search-form'),
-  gallery: document.querySelector('.gallery'),
-};
 const formData = new FormData();
+const refs = getRefs();
 
+window.addEventListener('pageshow', onClearStorage);
 refs.form = addEventListener('submit', onFormSubmit);
-refs.form = addEventListener('input', throttle(onFormInput, 2000));
+refs.form = addEventListener('input', throttle(onFormInput, 1000));
 
 // Функція отримує значення з поля input, виконує форматування значення та записує його в об'єкт типу FormData для подальшого використання в скрипті
 function onFormInput(event) {
@@ -28,35 +26,20 @@ function onFormInput(event) {
 function onFormSubmit(event) {
   event.preventDefault();
   const request = formData.get('searchQuery');
-  if (request === null) {
-    Notify.warning(
-      'Attention, empty request. The result will be random photos'
-    );
-  }
 
   console.log('event :>> ', formData.get('searchQuery'));
   imageSearchApi(request).then(renderMarkup).catch(onSearchError);
 }
+
 //  Функція виконання розмітки
 function renderMarkup(searchResult) {
-  console.log('searchResult.length :>> ', searchResult.total);
-  const sizeArray = searchResult.total;
+  console.log('searchResult.length :>> ', searchResult.hits);
 
-  if (sizeArray === 0) {
-    throw new Error();
-  }
-  refs.gallery.innerHTML = imageCardTpl(searchResult);
-  //   } else if (sizeArray > 1 && sizeArray < 10) {
-  //     refs.countryInfo.innerHTML = '';
-  //     refs.countryList.innerHTML = templCountryListMarkup(fetchCountry);
-  //   } else if (sizeArray === 1) {
-  //     refs.countryList.innerHTML = '';
-  //     refs.countryInfo.innerHTML = templCountryInfoMarkup(fetchCountry);
-  //   }
+  refs.gallery.insertAdjacentHTML('beforeend', imageCardTpl(searchResult.hits));
 }
 
 function onSearchError() {
   Notify.failure(
-    'Sorry, there are no images matching your search query. Please try again.'
+    '1Sorry, there are no images matching your search query. Please try again.'
   );
 }
