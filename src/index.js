@@ -76,9 +76,10 @@ function onInfiniteScroll() {
       onSearchData();
       gallery.refresh();
       return;
+    } else if (searchImage.totalHits > 0) {
+      Notify.info(`We're sorry, but you've reached the end of search results.`);
+      return;
     }
-    Notify.info(`We're sorry, but you've reached the end of search results.`);
-    return;
   }
   return;
 }
