@@ -1,29 +1,28 @@
-import throttle from 'lodash.throttle';
+import debounce from 'lodash.debounce';
 import imageApi from '../src/search-api.js';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
-// Функция-конструктор из библиотеки SimpleLightBox
-let gallery = new SimpleLightbox('.gallery a');
-
 import getRefs from '../src/get-refs.js';
 import imageCardTpl from '../src/templates/photo-cards.hbs';
+import debounce from 'lodash.debounce';
 
 const searchImage = new imageApi();
 const formData = new FormData();
 const refs = getRefs();
+let gallery = {};
 
 refs.form = addEventListener('submit', onFormSubmit);
-refs.form = addEventListener('input', throttle(onFormInput, 1000));
-refs.scroll = addEventListener('scroll', throttle(onInfiniteScroll, 2000));
+refs.form = addEventListener('input', onFormInput);
+refs.scroll = addEventListener('scroll', debounce(onInfiniteScroll, 300));
 
 // Функція отримує значення з поля input, виконує форматування значення та записує його в об'єкт типу FormData для подальшого використання в скрипті
 function onFormInput(event) {
   const data = event.target.value.trim();
   formData.set('searchQuery', data);
-  console.log('formData :>> ', formData.get('searchQuery'));
+  //   console.log('formData :>> ', formData.get('searchQuery'));
   return formData;
 }
 
@@ -42,9 +41,11 @@ function onFormSubmit(event) {
     searchImage.query = request;
     searchImage.resetPage();
   }
+  searchImage.loadedHits = 0;
   onSearchData();
   onScrollToTop();
 }
+
 // Асинхронна функція запиту та рендеру розмітки галереї.
 async function onSearchData() {
   try {
@@ -56,33 +57,35 @@ async function onSearchData() {
     console.log(error);
   }
 }
+//  Функція виконання розмітки
+function onRenderGalleryMarkup(searchResult) {
+  refs.gallery.insertAdjacentHTML('beforeend', imageCardTpl(searchResult.hits));
+  gallery = new SimpleLightbox('.gallery a');
+}
 
 // Функція "безкінечного скроллу" та підвантаження наступної сторінки для поточного значення запиту
 function onInfiniteScroll() {
   const documentClientRect = document.documentElement.getBoundingClientRect();
 
-  if (documentClientRect.bottom < document.documentElement.clientHeight + 600) {
-    if (searchImage.hitsPerPage === searchImage.totalHits) {
-      Notify.info(`We're sorry, but you've reached the end of search results.`);
+  if (documentClientRect.bottom < document.documentElement.clientHeight + 200) {
+    console.log('searchImage.loadedHits :>> ', searchImage.loadedHits);
+    console.log('searchImage.totalHits :>> ', searchImage.totalHits);
+    console.log('search.page :>> ', searchImage.page);
+    if (searchImage.loadedHits < searchImage.totalHits) {
+      searchImage.incrementPage();
+      onSearchData();
+      gallery.refresh();
       return;
     }
-    console.log('searchImage.incrementPage :>> ', searchImage.page);
-    console.log('searchImage.hitsPerPage :>> ', searchImage.hitsPerPage);
-
-    searchImage.incrementPage();
-    onSearchData();
-    gallery.refresh();
+    Notify.info(`We're sorry, but you've reached the end of search results.`);
+    return;
   }
+  return;
 }
 
 // Функція очищення поточної розмітки галереї
 function onClearGallery() {
   refs.gallery.innerHTML = '';
-}
-
-//  Функція виконання розмітки
-function onRenderGalleryMarkup(searchResult) {
-  refs.gallery.insertAdjacentHTML('beforeend', imageCardTpl(searchResult.hits));
 }
 
 // Функція повертання до початку сторінки після завантаження результатів нового пошук

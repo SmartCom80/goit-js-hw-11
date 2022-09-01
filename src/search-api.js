@@ -12,7 +12,7 @@ export default class imageApi {
     this.perPage = 40;
     this.page = 1;
     this.totalHits = 0;
-    this.hitsPerPage = 0;
+    this.loadedHits = 0;
   }
   async search() {
     const params = {
@@ -30,7 +30,7 @@ export default class imageApi {
 
     this.totalHits = response.data.totalHits;
 
-    this.hitsPerPage += response.data.hits.length;
+    this.loadedHits += response.data.hits.length;
 
     if (!response.data.totalHits) {
       // Викликаємо помилку, якщо отримуємо пустий массив та виводимо попередження
@@ -51,7 +51,7 @@ export default class imageApi {
   }
 
   get query() {
-    // Геттер, отримуємо поточне значення запиту
+    // Геттер, отримуємо поточне значення запиту у властивості классу
     return this.searchQuery;
   }
 
@@ -60,9 +60,3 @@ export default class imageApi {
     this.searchQuery = newQuery;
   }
 }
-
-// Функція виконує компонування url-строки для функції запиту
-// function composeUrl(name) {
-//   const { key, image_type, orientation, safesearch, page, per_page } = options;
-//   return `${BASE_URL}/?key=${key}&q=${name}&$image_type=${image_type}&orientation=${orientation}&safesearch=${safesearch}&page=${page}&per_page=${per_page}`;
-// }
