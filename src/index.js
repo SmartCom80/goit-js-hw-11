@@ -68,15 +68,13 @@ function onInfiniteScroll() {
   const documentClientRect = document.documentElement.getBoundingClientRect();
 
   if (documentClientRect.bottom < document.documentElement.clientHeight + 200) {
-    console.log('searchImage.loadedHits :>> ', searchImage.loadedHits);
-    console.log('searchImage.totalHits :>> ', searchImage.totalHits);
-    console.log('search.page :>> ', searchImage.page);
     if (searchImage.loadedHits < searchImage.totalHits) {
       searchImage.incrementPage();
       onSearchData();
       gallery.refresh();
       return;
     } else if (searchImage.totalHits > 0) {
+      console.log('object :>> ', 'error');
       Notify.info(`We're sorry, but you've reached the end of search results.`);
       return;
     }
